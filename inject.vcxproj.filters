@@ -21,9 +21,15 @@
     <ClCompile Include="tls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hollowing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

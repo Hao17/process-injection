@@ -3,20 +3,61 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "tls.h"
-int main()
+#include "inject.h"
+
+#ifdef _WIN64
+#pragma comment (linker, "/INCLUDE:_tls_used")
+#pragma comment (linker, "/INCLUDE:_tls_callback")
+#else
+#pragma comment (linker, "/INCLUDE:__tls_used")
+#pragma comment (linker, "/INCLUDE:__tls_callback")
+#endif
+
+void NTAPI __stdcall TlsCallBack(PVOID DllHandle, DWORD dwReason, PVOID Reserved);
+
+EXTERN_C
+#ifdef _WIN64
+#pragma const_seg (".CRT$XLB")
+const PIMAGE_TLS_CALLBACK _tls_callback = TlsCallBack;
+#pragma const_seg ()
+#else
+#pragma data_seg (".CRT$XLB")
+PIMAGE_TLS_CALLBACK _tls_callback = TlsCallBack;
+#pragma data_seg ()
+#endif
+
+void NTAPI __stdcall TlsCallBack(PVOID DllHandle, DWORD dwReason, PVOID Reserved)
 {
-    TlsTest();
-    std::cout << "Hello World!\n";
+    DWORD dwNumberOfBytesWritten;
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+	{
+		// process hollowing
+		char path[MAX_PATH];
+		char cmd[] = "notepad.exe";
+		char image[] = "helloworld.exe";
+		GetModuleFileNameA(0, path, MAX_PATH);
+
+		path[strrchr(path, '\\') - path + 1] = 0;
+		strncat_s(path, image, sizeof(image));
+
+		printf("%s\n", path);
+
+		ProcessHollowing(cmd, path);
+		LPCSTR szText = "process attach\n";
+
+		WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), szText, lstrlenA(szText), &dwNumberOfBytesWritten, 0);
+		break;
+	}
+	}
+
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+int main()
+{
+    // TlsTest();   
+	system("pause"); 
+}
